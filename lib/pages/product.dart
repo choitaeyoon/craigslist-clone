@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:scoped_model/scoped_model.dart';
 
 import '../widgets/ui_elements/title_default.dart';
+import '../models/product.dart';
+import '../scoped-models/products.dart';
 
 class ProductPage extends StatelessWidget {
-  final String title;
-  final String description;
-  final String imageUrl;
-  final double price;
-  final String location;
+  final int productIndex;
 
-  ProductPage(
-      this.title, this.description, this.imageUrl, this.price, this.location);
+  ProductPage(this.productIndex);
 
-  Widget _buildPriceText(BuildContext context) {
+  Widget _buildPriceText(Product product, BuildContext context) {
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-      TitleDefault(title),
+      TitleDefault(product.title),
       SizedBox(
         width: 8.0,
       ),
@@ -24,7 +22,7 @@ class ProductPage extends StatelessWidget {
           decoration: BoxDecoration(
               color: Theme.of(context).accentColor,
               borderRadius: BorderRadius.circular(5.0)),
-          child: Text('\$' + price.toString(),
+          child: Text('\$' + product.price.toString(),
               style: TextStyle(color: Colors.white)))
     ]);
   }
@@ -32,33 +30,40 @@ class ProductPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () {
-          print('back button pressed');
-          Navigator.pop(context, false);
-          return Future.value(false);
+      onWillPop: () {
+        print('back button pressed');
+        Navigator.pop(context, false);
+        return Future.value(false);
+      },
+      child: ScopedModelDescendant<ProductsModel>(
+        builder: (BuildContext context, Widget child, ProductsModel model) {
+          final Product product = model.products[productIndex];
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(product.title),
+            ),
+            body: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Image.asset(product.image),
+                  Container(
+                      margin: EdgeInsets.only(top: 10.0),
+                      child: _buildPriceText(product,context)),
+                  Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey, width: 1.0),
+                        borderRadius: BorderRadius.circular(4.0)),
+                    child: Text(product.location),
+                  ),
+                  Container(
+                      padding: EdgeInsets.only(top: 4.0),
+                      child: Text(product.description)),
+                ]),
+          );
         },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(title),
-          ),
-          body: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Image.asset(imageUrl),
-                Container(
-                    margin: EdgeInsets.only(top: 10.0),
-                    child: _buildPriceText(context)),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 1.0),
-                      borderRadius: BorderRadius.circular(4.0)),
-                  child: Text(location),
-                ),
-                Container(
-                    padding: EdgeInsets.only(top: 4.0),
-                    child: Text(description)),
-              ]),
-        ));
+      ),
+    );
   }
 }
